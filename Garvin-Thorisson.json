@@ -1,0 +1,85 @@
+{
+    "name": "Garvin-Thorisson",
+    "type": "npc",
+    "img": "icons/svg/mystery-man.svg",
+    "system": {
+        "abilities": {
+            "str": {
+                "value": 10,
+                "proficient": 0
+            },
+            "dex": {
+                "value": 10,
+                "proficient": 0
+            },
+            "con": {
+                "value": 10,
+                "proficient": 0
+            },
+            "int": {
+                "value": 10,
+                "proficient": 0
+            },
+            "wis": {
+                "value": 10,
+                "proficient": 0
+            },
+            "cha": {
+                "value": 10,
+                "proficient": 0
+            }
+        },
+        "attributes": {
+            "ac": {
+                "flat": 10
+            },
+            "hp": {
+                "value": 4,
+                "max": 4
+            },
+            "movement": {
+                "walk": 30,
+                "units": "ft"
+            }
+        },
+        "details": {
+            "biography": {
+                "value": "<h1>Garvin-Thorisson</h1><p><em>Dwarf Adventurer from Togdha</em></p><p><strong>Faction:</strong> Smiths Guild<br><strong>Social Class:</strong> Commoner<br><strong>Religion:</strong> Adherent of the Dwarven Gods</p><hr><p><strong>Personality:</strong> Patient, Humble</p><p><strong>Ideal:</strong> Community. We are all stronger together, and I must protect my community.</p><p><strong>Bond:</strong> I will protect the natural world from those who would exploit it.</p><p><strong>Flaw:</strong> I cannot resist a puzzle or a secret, even if it leads me into danger.</p>"
+            },
+            "race": "Dwarf",
+            "alignment": "neutral"
+        },
+        "traits": {
+            "size": "med"
+        }
+    },
+    "prototypeToken": {
+        "name": "Garvin-Thorisson",
+        "texture": {
+            "src": "icons/svg/mystery-man.svg"
+        },
+        "width": 1,
+        "height": 1,
+        "disposition": 0
+    },
+    "items": [
+        {
+            "name": "Dwarf",
+            "type": "race",
+            "system": {
+                "description": {
+                    "value": "Gaelic are their gods. Strong-willed and stubborn are their hearts. Some call them brusk, in business, but few call them that to their faces.Since they seem to prefer areas of geological interest where they might find ores, gems and the treasures of the earth you'll find them mainly in the surrounding mountains or Ore pits like\u00a0The Pit at Ekersfeld. The do come to the city of\u00a0Kashal, particularly those involved in stone craft, metal work and commerce, but their kind are often drawn back to their roots in the earth. By and large, the dwarves worship the what you and I know as the\u00a0Old Norse Gods"
+                }
+            }
+        },
+        {
+            "name": "Adventurer",
+            "type": "class",
+            "system": {
+                "description": {
+                    "value": "A Adventurer from Togdha."
+                }
+            }
+        }
+    ]
+}

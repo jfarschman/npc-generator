@@ -1,0 +1,33 @@
+{
+    "Kashal": {
+        "pantheon_weights": { "Gods of the Empire": 9, "Gods of Humans - Old Gods": 1 },
+        "organization_weights": { "Praetorian Guard": 3, "Mages Guild": 2, "Trades Guilds": 4, "Gladiators": 2, "Thieves Guild": 1 },
+        "race_weights": { "Human": 8, "Dwarf": 2, "Half-Elf": 1, "Tiefling": 1, "Warforged": 1 },
+        "name_style": "roman"
+    },
+    "Grugain": {
+        "pantheon_weights": { "Elven Gods": 10 },
+        "organization_weights": { "CaerCylwen Sentinels": 8, "Friends of the Elves": 2 },
+        "race_weights": { "Elf": 10, "Half-Elf": 1 },
+        "name_style": "elvish"
+    },
+    "Grellans_Grove": {
+        "pantheon_weights": { "Gods of Humans - Old Gods": 8, "Elven Gods": 1 },
+        "organization_weights": { "Sisters of the Thorn": 8, "Trades Guilds": 2 },
+        "race_weights": { "Human": 5, "Gnome": 3, "Elf": 2, "Half-Elf": 2, "Halfling": 1 },
+        "name_style": "celtic_gaelic"
+    },
+    "Togdha": {
+        "pantheon_weights": { "Dwarven Gods": 10 },
+        "organization_weights": { "Miners Guild": 5, "Smiths Guild": 4, "Clan Watch": 3 },
+        "race_weights": { "Dwarf": 10, "Human": 1 },
+        "name_style": "dwarven_norse"
+    },
+    "Countryside": {
+        "village_names": ["EkersfeLd", "Maddy's Killoween", "Gleann", "Braega", "Galbally", "Drassy", "Dù Tuath", "The Narrows"],
+        "pantheon_weights": { "Gods of Humans - Old Gods": 7, "Gods of the Empire": 3 },
+        "organization_weights": { "Village Militia": 5, "Trades Guilds": 5 },
+        "race_weights": { "Human": 7, "Halfling": 3 },
+        "name_style": "common_anglo"
+    }
+}

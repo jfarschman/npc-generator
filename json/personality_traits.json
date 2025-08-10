@@ -1,0 +1,31 @@
+{
+  "traits": [
+    { "trait": "Ambitious", "tags": ["neutral", "kashal", "noble", "mage"] },
+    { "trait": "Arrogant", "tags": ["negative", "kashal", "noble"] },
+    { "trait": "Artistic", "tags": ["positive", "grugain", "elf"] },
+    { "trait": "Brave", "tags": ["positive", "fighter", "guard", "gladiator"] },
+    { "trait": "Blunt", "tags": ["neutral", "dwarf", "fighter"] },
+    { "trait": "Cautious", "tags": ["neutral", "halfling", "commoner"] },
+    { "trait": "Cheerful", "tags": ["positive", "halfling", "bard"] },
+    { "trait": "Curious", "tags": ["neutral", "gnome", "mage", "wizard"] },
+    { "trait": "Cynical", "tags": ["negative", "tiefling", "rogue", "thieves_guild"] },
+    { "trait": "Disciplined", "tags": ["positive", "guard", "elf"] },
+    { "trait": "Gruff", "tags": ["neutral", "dwarf", "guard"] },
+    { "trait": "Honorable", "tags": ["positive", "kashal", "fighter", "guard"] },
+    { "trait": "Humble", "tags": ["positive", "commoner", "grellans_grove"] },
+    { "trait": "Idealistic", "tags": ["neutral", "young", "elf"] },
+    { "trait": "Jaded", "tags": ["negative", "veteran", "guard", "thieves_guild"] },
+    { "trait": "Loyal", "tags": ["positive", "guard", "dwarf"] },
+    { "trait": "Mischievous", "tags": ["neutral", "gnome", "tiefling", "rogue"] },
+    { "trait": "Patient", "tags": ["positive", "grellans_grove", "elf"] },
+    { "trait": "Pious", "tags": ["neutral", "cleric", "commoner"] },
+    { "trait": "Practical", "tags": ["neutral", "dwarf", "commoner", "trades_guild"] },
+    { "trait": "Proud", "tags": ["neutral", "kashal", "noble", "dwarf"] },
+    { "trait": "Reserved", "tags": ["neutral", "elf", "mage"] },
+    { "trait": "Sarcastic", "tags": ["neutral", "rogue", "mage"] },
+    { "trait": "Stoic", "tags": ["neutral", "warforged", "guard"] },
+    { "trait": "Superstitious", "tags": ["neutral", "commoner", "grellans_grove"] },
+    { "trait": "Suspicious", "tags": ["negative", "grellans_grove", "thieves_guild", "tiefling"] },
+    { "trait": "World-weary", "tags": ["negative", "warforged", "veteran"] }
+  ]
+}

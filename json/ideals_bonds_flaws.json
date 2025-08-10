@@ -1,0 +1,38 @@
+{
+  "ideals": [
+    { "text": "Tradition. The old ways are the best ways, and I must preserve them.", "tags": ["law"] },
+    { "text": "Freedom. Everyone should be free to chart their own course.", "tags": ["chaos", "good"] },
+    { "text": "Power. The only way to get what you want is to be strong enough to take it.", "tags": ["evil"] },
+    { "text": "Knowledge. The pursuit of knowledge is the highest calling.", "tags": ["neutral", "mage"] },
+    { "text": "Community. We are all stronger together, and I must protect my community.", "tags": ["good", "commoner"] },
+    { "text": "Greed. I'm just in it for the coin.", "tags": ["evil"] },
+    { "text": "Beauty. The world is a dark place; I will fill it with beauty.", "tags": ["good", "elf", "artisan"] },
+    { "text": "Aspiration. I will climb the social ladder, no matter the cost.", "tags": ["neutral", "kashal"] },
+    { "text": "Honor. My word is my bond, and a stain on my honor is a stain on my soul.", "tags": ["law"] },
+    { "text": "Logic. Emotions are a weakness; every decision must be based on pure reason.", "tags": ["law", "mage"] }
+  ],
+  "bonds": [
+    { "text": "I am fiercely loyal to my immediate commander." },
+    { "text": "Everything I do is for my family and the honor of our name." },
+    { "text": "I will do anything to protect the members of my guild." },
+    { "text": "My hometown is the most important place in the world to me." },
+    { "text": "I owe a life debt to an old adventurer who once saved me." },
+    { "text": "I'm pursuing a personal vendetta against the person who wronged my family." },
+    { "text": "I cherish a simple keepsake that connects me to my past." },
+    { "text": "I am in love with someone from a rival family or organization." },
+    { "text": "I will protect the natural world from those who would exploit it." },
+    { "text": "The secrets I keep are not my own; I hold them for a friend." }
+  ],
+  "flaws": [
+    { "text": "I am secretly terrified of magic and distrust all spellcasters." },
+    { "text": "I have a crippling gambling addiction." },
+    { "text": "I see conspiracies everywhere and trust no one." },
+    { "text": "I am a sucker for a pretty face and easily charmed." },
+    { "text": "Once someone questions my courage, I will do anything to prove them wrong, no matter how reckless." },
+    { "text": "I am convinced of my own superiority and look down on others." },
+    { "text": "I cannot resist a puzzle or a secret, even if it leads me into danger." },
+    { "text": "I have no respect for authority and will always talk back to it." },
+    { "text": "I am haunted by a mistake I made in my past and seek absolution." },
+    { "text": "I will say anything to avoid hard work." }
+  ]
+}

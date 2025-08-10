@@ -1,0 +1,27 @@
+{
+  "races": {
+    "Human": null,
+    "Dwarf": null,
+    "Elf": null,
+    "Gnome": null,
+    "Half-Elf": null,
+    "Halfling": null,
+    "Tiefling": null,
+    "Warforged": null
+  },
+  "locations": {
+    "Kashal": null,
+    "Grugain": null,
+    "Grellans_Grove": null,
+    "Togdha": null
+  },
+  "organizations": {
+    "Praetorian Guard": null,
+    "Mages Guild": null,
+    "Trades Guilds": null,
+    "Gladiators": null,
+    "Thieves Guild": null,
+    "Sisters of the Thorn": null,
+    "Senate": null
+  }
+}

@@ -1,0 +1,6 @@
+# Ignore Foundry VTT output files
+*-fvtt.json
+*-dh.json
+
+# Ignore Python cache files
+__pycache__/
