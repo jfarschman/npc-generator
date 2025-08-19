@@ -2,6 +2,7 @@ import json
 import os
 import re
 import secrets
+import string
 import requests
 import random
 import time
@@ -71,17 +72,43 @@ class NPCEngine:
         return list(choices_dict.keys())[-1]
 
     def _generate_name(self, name_style, race):
-        prompt = f"Generate a single, plausible, fantasy {race} name with a {name_style} cultural style. Provide only the name and nothing else."
-        payload = {"model": LLM_MODEL_NAME, "prompt": prompt, "stream": False, "options": {"stop": ["\n"]}}
+        """Generates a name by calling a local LLM API with a retry mechanism."""
+        
+        # --- NEW: Nudge the LLM with a random starting letter ---
+        random_letter = random.choice(string.ascii_uppercase)
+        
+        # --- MODIFIED: The prompt now includes the random letter instruction ---
+        prompt = (
+            f"Generate a single, plausible, fantasy {race} name with a {name_style} cultural style, "
+            f"starting with the letter '{random_letter}'. "
+            "Provide only the name and nothing else."
+        )
+        
+        payload = {
+            "model": LLM_MODEL_NAME,
+            "prompt": prompt,
+            "stream": False,
+            "options": {
+                "stop": ["\n"] 
+            }
+        }
+        
         max_retries = 3
         for attempt in range(max_retries):
             try:
                 response = requests.post(LLM_API_URL, json=payload, timeout=15)
                 response.raise_for_status()
+                
                 full_response = response.json().get('response', 'Nameus Fallbackus').strip()
-                return full_response.split('\n')[0].strip()
+                generated_name = full_response.split('\n')[0].strip()
+                
+                return generated_name
+
             except requests.exceptions.RequestException:
-                if attempt < max_retries - 1: time.sleep(1)
+                if attempt < max_retries - 1:
+                    time.sleep(1)
+        
+        print(f"\n--- LLM Connection Error: Using fallback name. ---\n")
         return f"Fallback {race}"
 
     def _generate_backstory(self, npc_data):

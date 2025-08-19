@@ -33,3 +33,4 @@ for DaggerHeart on FoundryVTT.
 
 ## TODO
 * Images - I'd love to integrate some image for these NPC.
+* Random Names - They aren't really random and appear to be from the first letters of the alphabet.  So, _generate_name needs a random letter prompt to start with.
