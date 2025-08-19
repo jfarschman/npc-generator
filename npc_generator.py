@@ -5,6 +5,7 @@ import secrets  # <-- Added missing import
 import requests
 import random
 from pathlib import Path
+import time
 
 # --- CONFIGURATION ---
 JSON_DIR = Path(__file__).parent / "json"
@@ -93,16 +94,41 @@ class NPCEngine:
         return list(choices_dict.keys())[-1]
 
     def _generate_name(self, name_style, race):
+        """Generates a name by calling a local LLM API with a retry mechanism."""
+        
         prompt = f"Generate a single, plausible, fantasy {race} name with a {name_style} cultural style. Provide only the name and nothing else."
-        payload = {"model": LLM_MODEL_NAME, "prompt": prompt, "stream": False}
-        try:
-            response = requests.post(LLM_API_URL, json=payload, timeout=15)
-            response.raise_for_status()
-            response_json = response.json()
-            return response_json.get('response', 'Nameus Fallbackus').strip()
-        except requests.exceptions.RequestException:
-            print(f"\n--- LLM Connection Error: Using fallback name. ---\n")
-            return f"Fallback {race}"
+        payload = {
+            "model": LLM_MODEL_NAME,
+            "prompt": prompt,
+            "stream": False
+        }
+        
+        # --- NEW: Retry Loop ---
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                # Send the request to the local server
+                response = requests.post(LLM_API_URL, json=payload, timeout=15)
+                response.raise_for_status() # Raise an exception for bad status codes
+                
+                # Parse the response and extract the generated name
+                response_json = response.json()
+                generated_name = response_json.get('response', 'Nameus Fallbackus').strip()
+                
+                # If successful, return the name and exit the function
+                return generated_name
+
+            except requests.exceptions.RequestException as e:
+                # If the connection fails, print a message and wait before the next attempt
+                print(f"LLM connection attempt {attempt + 1} of {max_retries} failed. Retrying in 1 second...")
+                time.sleep(1) # Wait for 1 second before trying again
+
+        # --- This part only runs if all retries in the loop have failed ---
+        print(f"\n--- LLM Connection Error ---")
+        print(f"Could not connect to the LLM at {LLM_API_URL} after {max_retries} attempts.")
+        print("Please ensure your local LLM (e.g., Ollama) is running.")
+        print("Using a fallback name.\n")
+        return f"Fallback {race}"
 
     def generate_npc(self):
         npc = {}
