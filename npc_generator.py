@@ -13,7 +13,7 @@ load_dotenv()
 
 # --- CONFIGURATION ---
 JSON_DIR = Path(__file__).parent / "json"
-POST_TO_KANKA = True
+POST_TO_KANKA = True # Set to True to enable Kanka posting
 KANKA_API_TOKEN = os.getenv("KANKA_API_TOKEN") 
 CAMPAIGN_ID = os.getenv("CAMPAIGN_ID")
 LLM_API_URL = "http://localhost:11434/api/generate"
@@ -32,13 +32,11 @@ DAGGERHEART_STATS = {
     "noble": {"difficulty": 12, "hp": 3, "stress": 4, "type": "social", "tier": 1, "thresholds": {"major": 4, "severe": 8}, "attack": {"name": "Dagger", "bonus": 1, "damage": "1d6+1"}, "experience": {"name": "Etiquette", "value": 3}}
 }
 
-
 class NPCEngine:
     def __init__(self, data_path):
         self.data_path = data_path
         self.load_all_data()
 
-    # (..._generate_id, load_all_data, _load_json, _load_lore_files, _weighted_choice are unchanged...)
     def _generate_id(self, length=16):
         return secrets.token_hex(length // 2)
 
@@ -71,79 +69,42 @@ class NPCEngine:
             current_weight += weight
             if choice_num <= current_weight: return choice
         return list(choices_dict.keys())[-1]
-    
+
     def _generate_name(self, name_style, race):
         prompt = f"Generate a single, plausible, fantasy {race} name with a {name_style} cultural style. Provide only the name and nothing else."
-        payload = {"model": LLM_MODEL_NAME, "prompt": prompt, "stream": False}
+        payload = {"model": LLM_MODEL_NAME, "prompt": prompt, "stream": False, "options": {"stop": ["\n"]}}
         max_retries = 3
         for attempt in range(max_retries):
             try:
                 response = requests.post(LLM_API_URL, json=payload, timeout=15)
                 response.raise_for_status()
-                response_json = response.json()
-                return response_json.get('response', 'Nameus Fallbackus').strip()
+                full_response = response.json().get('response', 'Nameus Fallbackus').strip()
+                return full_response.split('\n')[0].strip()
             except requests.exceptions.RequestException:
-                if attempt < max_retries - 1:
-                    time.sleep(1)
-                else:
-                    print(f"\n--- LLM Connection Error: Using fallback name. ---\n")
-                    return f"Fallback {race}"
+                if attempt < max_retries - 1: time.sleep(1)
+        return f"Fallback {race}"
 
-    # --- NEW FUNCTION ---
     def _generate_backstory(self, npc_data):
-        """Generates a one-paragraph backstory by calling a local LLM API."""
         print("Generating backstory from LLM...")
-        
-        # --- MODIFIED: Added a stronger concluding instruction ---
-        prompt = (
-            "Write a single, compelling backstory paragraph (around 50-70 words) for a new tabletop RPG character. "
-            "Weave the following details together logically:\n"
-            f"- Name: {npc_data['name']}\n"
-            f"- Race: {npc_data['race']}\n"
-            f"- Class/Archetype: {npc_data['class']}\n"
-            f"- Hometown: {npc_data['hometown']}\n"
-            f"- Organization: {npc_data['organization']}\n"
-            f"- Core Personality: {npc_data['traits'][0]}, {npc_data['traits'][1]}\n"
-            f"- Ideal: {npc_data['ideal']}\n"
-            f"- Bond: {npc_data['bond']}\n"
-            f"- Flaw: {npc_data['flaw']}\n\n"
-            "Provide ONLY the single paragraph backstory and nothing else."
-        )
-        
-        payload = {
-            "model": LLM_MODEL_NAME,
-            "prompt": prompt,
-            "stream": False,
-            "options": {
-                "stop": ["---", "\n\n\n"] # --- NEW: Tell the model to stop if it generates these
-            }
-        }
-        
+        prompt = (f"Write a single, compelling backstory paragraph (around 50-70 words) for a new tabletop RPG character. "
+                  f"Weave the following details together logically:\n- Name: {npc_data['name']}\n- Race: {npc_data['race']}\n"
+                  f"- Class/Archetype: {npc_data['class']}\n- Hometown: {npc_data['hometown']}\n- Organization: {npc_data['organization']}\n"
+                  f"- Core Personality: {npc_data['traits'][0]}, {npc_data['traits'][1]}\n- Ideal: {npc_data['ideal']}\n"
+                  f"- Bond: {npc_data['bond']}\n- Flaw: {npc_data['flaw']}\n\nProvide ONLY the single paragraph backstory and nothing else.")
+        payload = {"model": LLM_MODEL_NAME, "prompt": prompt, "stream": False, "options": {"stop": ["---", "\n\n\n"]}}
         max_retries = 3
         for attempt in range(max_retries):
             try:
                 response = requests.post(LLM_API_URL, json=payload, timeout=30)
                 response.raise_for_status()
-                response_json = response.json()
-                
-                backstory_text = response_json.get('response', 'No backstory could be generated.').strip()
-                
-                # --- NEW: Manually clean the output as a final safety measure ---
-                cleaned_backstory = backstory_text.split('---')[0].strip()
-                
-                return cleaned_backstory
-
+                backstory_text = response.json().get('response', 'No backstory generated.').strip()
+                return backstory_text.split('---')[0].strip()
             except requests.exceptions.RequestException:
-                if attempt < max_retries - 1:
-                    print(f"LLM backstory attempt {attempt + 1} of {max_retries} failed. Retrying...")
-                    time.sleep(1)
-                else:
-                    print(f"\n--- LLM Connection Error: Could not generate backstory. ---\n")
-                    return "No backstory could be generated."
+                if attempt < max_retries - 1: time.sleep(1)
+        return "No backstory could be generated."
 
     def generate_npc(self):
         npc = {}
-        # (Generation of core attributes is the same)
         hometown_type = random.choice(list(self.rulebook.keys()))
         rules = self.rulebook[hometown_type]
         npc['hometown'] = random.choice(rules['village_names']) if hometown_type == "Countryside" else hometown_type
@@ -159,110 +120,83 @@ class NPCEngine:
         npc['bond'] = random.choice(self.ideals_bonds_flaws['bonds'])['text']
         npc['flaw'] = random.choice(self.ideals_bonds_flaws['flaws'])['text']
         npc['name'] = self._generate_name(rules.get('name_style', 'common_anglo'), npc['race'])
-        
-        # --- MODIFIED: Call the new backstory function ---
         npc['backstory'] = self._generate_backstory(npc)
-        
-        return npc
+        return npc, hometown_type
 
     def format_for_fvtt(self, npc_data):
-        # (This function is updated to include the backstory)
         archetype = npc_data['class'].lower()
         stat_block_key = 'guard' if 'guard' in archetype else 'mage' if 'mage' in archetype else 'commoner'
         stats = STAT_BLOCKS_5E[stat_block_key]
-        biography = (
-            f"<h1>{npc_data['name']}</h1><p><em>{npc_data['race']} {npc_data['class']} from {npc_data['hometown']}</em></p>"
-            f"<h2>Backstory</h2><p>{npc_data['backstory']}</p><hr>"
-            f"<p><strong>Faction:</strong> {npc_data['organization']}<br>"
-            f"<strong>Ideal:</strong> {npc_data['ideal']}<br><strong>Bond:</strong> {npc_data['bond']}<br><strong>Flaw:</strong> {npc_data['flaw']}</p>"
-        )
-        # (Rest of the function is the same)
-        return {"name": npc_data['name'],"type": "npc","img": "icons/svg/mystery-man.svg",
-            "system": {"abilities": {key: {"value": val} for key, val in stats.items() if key in ['str', 'dex', 'con', 'int', 'wis', 'cha']},
-                "attributes": {"ac": {"flat": stats['ac']}, "hp": {"value": stats['hp'], "max": stats['hp']}},
-                "details": {"biography": {"value": biography}}}}
+        biography = (f"<h1>{npc_data['name']}</h1><p><em>{npc_data['race']} {npc_data['class']} from {npc_data['hometown']}</em></p>"
+                     f"<h2>Backstory</h2><p>{npc_data['backstory']}</p><hr>"
+                     f"<p><strong>Ideal:</strong> {npc_data['ideal']}<br><strong>Bond:</strong> {npc_data['bond']}<br><strong>Flaw:</strong> {npc_data['flaw']}</p>")
+        return {"name": npc_data['name'], "type": "npc", "img": "icons/svg/mystery-man.svg",
+                "system": {"abilities": {key: {"value": val} for key, val in stats.items() if key in ['str', 'dex', 'con', 'int', 'wis', 'cha']},
+                           "attributes": {"ac": {"flat": stats['ac']}, "hp": {"value": stats['hp'], "max": stats['hp']}},
+                           "details": {"biography": {"value": biography}}}}
 
     def format_for_daggerheart(self, npc_data):
-        # (This function is updated to include the backstory)
         archetype = npc_data['class'].lower()
         stat_block_key = 'guard' if 'guard' in archetype else 'mage' if 'mage' in archetype else 'noble' if 'noble' in npc_data.get('social_class', '').lower() else 'commoner'
         stats = DAGGERHEART_STATS[stat_block_key]
         damage_dice, damage_bonus = (stats['attack']['damage'].split('+') + ['0'])[:2]
         die_type = f"d{damage_dice.split('d')[1]}"
         description = f"<p>A {npc_data['race']} {npc_data['class']} from {npc_data['hometown']}.</p><h2>Backstory</h2><p>{npc_data['backstory']}</p>"
-        # (Rest of the function is the same)
-        return {
-            "name": npc_data['name'],"type": "adversary","img": "icons/svg/mystery-man.svg",
-            "prototypeToken": {"name": npc_data['name'],"texture": {"src": "icons/svg/mystery-man.svg"},"width": 1, "height": 1, "disposition": -1,"bar1": {"attribute": "resources.hitPoints"},"bar2": {"attribute": "resources.stress"}},
-            "system": {"difficulty": stats['difficulty'],"damageThresholds": stats['thresholds'],
-                "resources": {"hitPoints": {"value": 0, "max": stats['hp'], "isReversed": True},"stress": {"value": 0, "max": stats['stress'], "isReversed": True}},
-                "resistance": {"physical": {"resistance": False, "immunity": False, "reduction": 0},"magical": {"resistance": False, "immunity": False, "reduction": 0}},
-                "type": stats['type'],"tier": stats['tier'],"hordeHp": 1,
-                "experiences": {self._generate_id(16): {"name": stats['experience']['name'],"value": stats['experience']['value']}},
-                "description": description, "motivesAndTactics": npc_data['ideal'],
-                "attack": {"name": stats['attack']['name'],"roll": {"bonus": stats['attack']['bonus']},
-                    "damage": {"parts": [{"value": {"dice": die_type,"bonus": int(damage_bonus)},"applyTo": "hitPoints","type": ["physical"]}]},"img": "icons/svg/sword.svg"}},
-            "items": []}
+        return {"name": npc_data['name'], "type": "adversary", "img": "icons/svg/mystery-man.svg",
+                "prototypeToken": {"name": npc_data['name'], "texture": {"src": "icons/svg/mystery-man.svg"}, "width": 1, "height": 1, "disposition": -1, "bar1": {"attribute": "resources.hitPoints"}, "bar2": {"attribute": "resources.stress"}},
+                "system": {"difficulty": stats['difficulty'], "damageThresholds": stats['thresholds'],
+                           "resources": {"hitPoints": {"value": 0, "max": stats['hp'], "isReversed": True}, "stress": {"value": 0, "max": stats['stress'], "isReversed": True}},
+                           "resistance": {"physical": {"resistance": False, "immunity": False, "reduction": 0}, "magical": {"resistance": False, "immunity": False, "reduction": 0}},
+                           "type": stats['type'], "tier": stats['tier'], "hordeHp": 1,
+                           "experiences": {self._generate_id(16): {"name": stats['experience']['name'], "value": stats['experience']['value']}},
+                           "description": description, "motivesAndTactics": npc_data['ideal'],
+                           "attack": {"name": stats['attack']['name'], "roll": {"bonus": stats['attack']['bonus']},
+                                      "damage": {"parts": [{"value": {"dice": die_type, "bonus": int(damage_bonus)}, "applyTo": "hitPoints", "type": ["physical"]}]}, "img": "icons/svg/sword.svg"}},
+                "items": []}
 
-    def post_to_kanka(self, npc_data):
-        """Formats and sends the generated NPC data to the Kanka API."""
-        if not all([KANKA_API_TOKEN, CAMPAIGN_ID]):
-            print("Kanka API Token or Campaign ID not found in .env file. Skipping post.")
-            return
-        
-        entry_html = (
-            f"<h2>Backstory</h2><p>{npc_data['backstory']}</p><hr>"
-            f"<p><strong>Ideal:</strong> {npc_data['ideal']}</p><p><strong>Bond:</strong> {npc_data['bond']}</p><p><strong>Flaw:</strong> {npc_data['flaw']}</p>"
-        )
-        
-        payload = {
-            "name": npc_data['name'],
-            "entry": entry_html,
-            "title": f"{npc_data['race']} {npc_data['class']}",
-            "is_private": True, # <-- Changed from False to True
-            "race_id": self.kanka_ids['races'].get(npc_data['race']),
-            "location_id": self.kanka_ids['locations'].get(npc_data['hometown']),
-            "organisation_id": self.kanka_ids['organizations'].get(npc_data['organization'])
-        }
-
+    def post_to_kanka(self, npc_data, hometown_type):
+        if not all([KANKA_API_TOKEN, CAMPAIGN_ID]): return
+        entry_html = (f"<h2>Backstory</h2><p>{npc_data['backstory']}</p><hr><p><strong>Ideal:</strong> {npc_data['ideal']}</p>"
+                      f"<p><strong>Bond:</strong> {npc_data['bond']}</p><p><strong>Flaw:</strong> {npc_data['flaw']}</p>")
+        payload = {"name": npc_data['name'], "entry": entry_html, "title": f"{npc_data['race']} {npc_data['class']}", "type": "npc", "is_private": True}
+        if (race_id := self.kanka_ids['races'].get(npc_data['race'])): payload['race_id'] = race_id
+        if (location_id := self.kanka_ids['locations'].get(hometown_type)): payload['location_id'] = location_id
+        if (organisation_id := self.kanka_ids['organizations'].get(npc_data['organization'])): payload['organisation_id'] = organisation_id
         url = f"https://api.kanka.io/1.0/campaigns/{CAMPAIGN_ID}/characters"
         headers = {"Authorization": f"Bearer {KANKA_API_TOKEN}", "Content-Type": "application/json"}
-        
         try:
             response = requests.post(url, headers=headers, json=payload)
             response.raise_for_status()
             created_char = response.json().get('data', {})
             print(f"Successfully created Kanka character: {created_char.get('name')} ({created_char.get('url')})")
         except requests.exceptions.HTTPError as e:
-            print(f"Kanka Error: Could not create character. Status: {e.response.status_code}")
+            print(f"Kanka Error: Status {e.response.status_code}, Body: {e.response.text}")
 
 if __name__ == "__main__":
-    # (The main execution block remains unchanged)
     try:
         engine = NPCEngine(JSON_DIR)
-        npc_data = engine.generate_npc()
+        npc_data, hometown_type = engine.generate_npc()
+        
         print("\n--- 1. NPC Summary (Terminal) ---")
         print(json.dumps(npc_data, indent=2))
-        print("---------------------------------\n")
-        print("--- 2. Saving Foundry VTT (D&D 5e) File ---")
+        
+        print("\n--- 2. Saving Foundry VTT (D&D 5e) File ---")
         foundry_npc_5e = engine.format_for_fvtt(npc_data)
         fvtt_filename = f"{npc_data['name'].replace(' ', '_')}-fvtt.json"
         with open(fvtt_filename, 'w', encoding='utf-8') as f: json.dump(foundry_npc_5e, f, indent=4)
         print(f"Saved file as: {fvtt_filename}")
-        print("-----------------------------------------\n")
-        print("--- 3. Saving Foundry VTT (Daggerheart) File ---")
+        
+        print("\n--- 3. Saving Foundry VTT (Daggerheart) File ---")
         foundry_npc_dh = engine.format_for_daggerheart(npc_data)
         dh_filename = f"{npc_data['name'].replace(' ', '_')}-dh.json"
         with open(dh_filename, 'w', encoding='utf-8') as f: json.dump(foundry_npc_dh, f, indent=4)
         print(f"Saved file as: {dh_filename}")
-        print("----------------------------------------------\n")
+        
         if POST_TO_KANKA:
-            print("--- 4. Posting to Kanka.io ---")
-            engine.post_to_kanka(npc_data)
-            print("------------------------------\n")
+            print("\n--- 4. Posting to Kanka.io ---")
+            engine.post_to_kanka(npc_data, hometown_type)
         else:
-            print("--- 4. Posting to Kanka.io (DISABLED) ---")
-            print("To enable, change POST_TO_KANKA to True in the script.")
-            print("-----------------------------------------\n")
+            print("\n--- 4. Posting to Kanka.io (DISABLED) ---")
+
     except Exception as e:
-        print(f"A critical error occurred: {e}")
+        print(f"\nA critical error occurred: {e}")

@@ -24,7 +24,7 @@
         "name_style": "dwarven_norse"
     },
     "Countryside": {
-        "village_names": ["EkersfeLd", "Maddy's Killoween", "Gleann", "Braega", "Galbally", "Drassy", "Dù Tuath", "The Narrows"],
+        "village_names": ["Ekersfeld", "Maddy's", "Killoween", "Gleann", "Braega", "Galbally", "Drassy", "Dù Tuath", "The Narrows"],
         "pantheon_weights": { "Gods of Humans - Old Gods": 7, "Gods of the Empire": 3 },
         "organization_weights": { "Village Militia": 5, "Trades Guilds": 5 },
         "race_weights": { "Human": 7, "Halfling": 3 },
