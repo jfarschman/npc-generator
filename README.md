@@ -14,8 +14,16 @@ Inside are the details about that locale, their gods, names, organizations etc. 
 
 Because FoundryVTT now has an import ability the process it simply a matter of creating a fake actor, then right-clicking and importing the .json.
 
-    
-
+## SETUP
+1. Export Your Kanka Data - We need your existing Kanka.io lore.:
+* **Locations:** (e.g., `Kashal.json`, `Grugain.json`)
+* **Races:** (e.g., `Human.json`, `Invernis.json`)
+* **Organizations:** (e.g., `Praetorian_Guard.json`, `Sisters_of_the_Thorn.json`)
+2. Organize Your JSON Files - Create a main `json` directory next to the `npc_generator.py` script. Inside it, create subdirectories (gods, hometowns, races, organizations, etc)
+3. Configure the Generator's Logic - **`world_connections.json`** file is the brain of the generator. Open it and adjust the `race_weights`, `pantheon_weights`, and `organization_weights` for each location to control the probability of different NPC types being generated. This file must be manually updated whenever you add or rename races, locations, or organizations.
+4. Set Up Kanka Integration (Optional)
+To have the script automatically create characters in your Kanka campaign, you need to set up your credentials in the .env file
+Open the **`json/kanka_id_map.json`** file. Replace the `null` values with the corresponding IDs in your campaign.
 
 ## USAGE
 Kanka.io offers backups of any content you create there and that's my data source.
@@ -25,4 +33,3 @@ for DaggerHeart on FoundryVTT.
 
 ## TODO
 * Images - I'd love to integrate some image for these NPC.
-* Kanka.io - Import.  I wrote the code for the ability to create a character from this directly into Kanka, but I haven't tested it. I bet it works, but first you'll need a kanka_id_map.json and of course API access.
