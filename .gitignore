@@ -2,5 +2,8 @@
 *-fvtt.json
 *-dh.json
 
+# Mac residue
+.DS_Store
+
 # Ignore Python cache files
 __pycache__/
