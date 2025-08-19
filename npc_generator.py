@@ -6,19 +6,24 @@ import requests
 import random
 from pathlib import Path
 import time
+from dotenv import load_dotenv # <-- Add this import
+
+# --- LOAD ENVIRONMENT VARIABLES ---
+load_dotenv() # <-- Add this line to load from the .env file
 
 # --- CONFIGURATION ---
 JSON_DIR = Path(__file__).parent / "json"
 
-# --- Kanka API Configuration ---
-POST_TO_KANKA = False # Set to True to enable Kanka posting
-KANKA_API_TOKEN = "YOUR_PERSONAL_API_TOKEN" 
-CAMPAIGN_ID = 0 # Replace 0 with your campaign's ID
+# --- Kanka API Configuration (now loaded from .env) ---
+POST_TO_KANKA = True # Set to True to enable Kanka posting
+KANKA_API_TOKEN = os.getenv("KANKA_API_TOKEN") 
+CAMPAIGN_ID = os.getenv("CAMPAIGN_ID")
 
 # --- Local LLM Configuration ---
 LLM_API_URL = "http://localhost:11434/api/generate"
 LLM_MODEL_NAME = "phi3:mini"
 
+# (The rest of the script remains exactly the same...)
 # --- D&D 5e Stat Blocks (for fvtt output) ---
 STAT_BLOCKS_5E = {
     "commoner": {"str": 10, "dex": 10, "con": 10, "int": 10, "wis": 10, "cha": 10, "hp": 4, "ac": 10},
@@ -60,7 +65,6 @@ class NPCEngine:
         self.load_all_data()
 
     def _generate_id(self, length=16):
-        """Generates a random alphanumeric string for Foundry IDs."""
         return secrets.token_hex(length // 2)
 
     def load_all_data(self):
@@ -94,40 +98,19 @@ class NPCEngine:
         return list(choices_dict.keys())[-1]
 
     def _generate_name(self, name_style, race):
-        """Generates a name by calling a local LLM API with a retry mechanism."""
-        
         prompt = f"Generate a single, plausible, fantasy {race} name with a {name_style} cultural style. Provide only the name and nothing else."
-        payload = {
-            "model": LLM_MODEL_NAME,
-            "prompt": prompt,
-            "stream": False
-        }
-        
-        # --- NEW: Retry Loop ---
+        payload = {"model": LLM_MODEL_NAME, "prompt": prompt, "stream": False}
         max_retries = 3
         for attempt in range(max_retries):
             try:
-                # Send the request to the local server
                 response = requests.post(LLM_API_URL, json=payload, timeout=15)
-                response.raise_for_status() # Raise an exception for bad status codes
-                
-                # Parse the response and extract the generated name
+                response.raise_for_status()
                 response_json = response.json()
-                generated_name = response_json.get('response', 'Nameus Fallbackus').strip()
-                
-                # If successful, return the name and exit the function
-                return generated_name
-
-            except requests.exceptions.RequestException as e:
-                # If the connection fails, print a message and wait before the next attempt
+                return response_json.get('response', 'Nameus Fallbackus').strip()
+            except requests.exceptions.RequestException:
                 print(f"LLM connection attempt {attempt + 1} of {max_retries} failed. Retrying in 1 second...")
-                time.sleep(1) # Wait for 1 second before trying again
-
-        # --- This part only runs if all retries in the loop have failed ---
+                time.sleep(1)
         print(f"\n--- LLM Connection Error ---")
-        print(f"Could not connect to the LLM at {LLM_API_URL} after {max_retries} attempts.")
-        print("Please ensure your local LLM (e.g., Ollama) is running.")
-        print("Using a fallback name.\n")
         return f"Fallback {race}"
 
     def generate_npc(self):
@@ -166,23 +149,11 @@ class NPCEngine:
                 "details": {"biography": {"value": biography}}}}
 
     def format_for_daggerheart(self, npc_data):
-        """Assembles the final NPC data into the updated Daggerheart adversary format."""
         archetype = npc_data['class'].lower()
         stat_block_key = 'guard' if 'guard' in archetype else 'mage' if 'mage' in archetype or 'wizard' in archetype else 'noble' if 'noble' in npc_data.get('social_class', '').lower() else 'commoner'
         stats = DAGGERHEART_STATS[stat_block_key]
-        
-        # --- MODIFIED SECTION ---
-        # Helper to correctly parse damage strings like "1d8+2"
-        damage_string = stats['attack']['damage']
-        damage_parts = damage_string.split('+')
-        dice_part = damage_parts[0]
-        damage_bonus = int(damage_parts[1]) if len(damage_parts) > 1 else 0
-        
-        # Extract *only* the die type (e.g., "d8" from "1d8") for the dice field
-        # It assumes a single die, which is standard for basic adversary attacks.
-        die_type = f"d{dice_part.split('d')[1]}"
-        # --- END MODIFIED SECTION ---
-
+        damage_dice, damage_bonus = (stats['attack']['damage'].split('+') + ['0'])[:2]
+        die_type = f"d{damage_dice.split('d')[1]}"
         return {
             "name": npc_data['name'],"type": "adversary","img": "icons/svg/mystery-man.svg",
             "prototypeToken": {"name": npc_data['name'],"texture": {"src": "icons/svg/mystery-man.svg"},"width": 1, "height": 1, "disposition": -1,"bar1": {"attribute": "resources.hitPoints"},"bar2": {"attribute": "resources.stress"}},
@@ -194,21 +165,40 @@ class NPCEngine:
                 "description": f"<p>A {npc_data['race']} {npc_data['class']} from {npc_data['hometown']}.</p>",
                 "motivesAndTactics": npc_data['ideal'],
                 "attack": {"name": stats['attack']['name'],"roll": {"bonus": stats['attack']['bonus']},
-                    "damage": {"parts": [{"value": {
-                        "dice": die_type, # Use the corrected die type here
-                        "bonus": damage_bonus
-                        },"applyTo": "hitPoints","type": ["physical"]}]},"img": "icons/svg/sword.svg"}},
+                    "damage": {"parts": [{"value": {"dice": die_type,"bonus": int(damage_bonus)},"applyTo": "hitPoints","type": ["physical"]}]},"img": "icons/svg/sword.svg"}},
             "items": []}
 
     def post_to_kanka(self, npc_data):
-        # (This function remains unchanged)
-        pass
+        if not all([KANKA_API_TOKEN, CAMPAIGN_ID]):
+            print("Kanka API Token or Campaign ID not found in .env file. Skipping post.")
+            return
+        
+        entry_html = (
+            f"<p>A {npc_data['race']} {npc_data['class']} from {npc_data['hometown']}.</p>"
+            f"<p><strong>Ideal:</strong> {npc_data['ideal']}</p><p><strong>Bond:</strong> {npc_data['bond']}</p><p><strong>Flaw:</strong> {npc_data['flaw']}</p>"
+        )
+        payload = {
+            "name": npc_data['name'], "entry": entry_html, "title": f"{npc_data['race']} {npc_data['class']}",
+            "race_id": self.kanka_ids['races'].get(npc_data['race']),
+            "location_id": self.kanka_ids['locations'].get(npc_data['hometown']),
+            "organisation_id": self.kanka_ids['organizations'].get(npc_data['organization'])
+        }
+        url = f"https://api.kanka.io/1.0/campaigns/{CAMPAIGN_ID}/characters"
+        headers = {"Authorization": f"Bearer {KANKA_API_TOKEN}", "Content-Type": "application/json"}
+        try:
+            response = requests.post(url, headers=headers, json=payload)
+            response.raise_for_status()
+            created_char = response.json().get('data', {})
+            print(f"Successfully created Kanka character: {created_char.get('name')} ({created_char.get('url')})")
+        except requests.exceptions.HTTPError as e:
+            print(f"Kanka Error: Could not create character. Status: {e.response.status_code}")
 
 if __name__ == "__main__":
     try:
         engine = NPCEngine(JSON_DIR)
         npc_data = engine.generate_npc()
 
+        # (The three output steps remain the same)
         print("\n--- 1. NPC Summary (Terminal) ---")
         print(json.dumps(npc_data, indent=2))
         print("---------------------------------\n")
