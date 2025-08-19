@@ -24,7 +24,5 @@ and finally direct the output into a couple of formats. One for DnD5e and the ot
 for DaggerHeart on FoundryVTT.
 
 ## TODO
-* I wrote this code prior to the release of [Foundryborne's Daggerheart](https://github.com/Foundryborne/daggerheart) game system for FoundryFTT, but I've heard that it's released and working now. IT's not tested
-* For DaggerHeart, I'm using importing into "Adversaries" but at the moment, I'm not creating a complete adversary.
 * Images - I'd love to integrate some image for these NPC.
 * Kanka.io - Import.  I wrote the code for the ability to create a character from this directly into Kanka, but I haven't tested it. I bet it works, but first you'll need a kanka_id_map.json and of course API access.
