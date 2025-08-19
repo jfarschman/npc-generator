@@ -13,7 +13,7 @@ load_dotenv()
 
 # --- CONFIGURATION ---
 JSON_DIR = Path(__file__).parent / "json"
-POST_TO_KANKA = False
+POST_TO_KANKA = True
 KANKA_API_TOKEN = os.getenv("KANKA_API_TOKEN") 
 CAMPAIGN_ID = os.getenv("CAMPAIGN_ID")
 LLM_API_URL = "http://localhost:11434/api/generate"
@@ -205,21 +205,29 @@ class NPCEngine:
             "items": []}
 
     def post_to_kanka(self, npc_data):
-        # (This function is updated to include the backstory)
+        """Formats and sends the generated NPC data to the Kanka API."""
         if not all([KANKA_API_TOKEN, CAMPAIGN_ID]):
             print("Kanka API Token or Campaign ID not found in .env file. Skipping post.")
             return
+        
         entry_html = (
             f"<h2>Backstory</h2><p>{npc_data['backstory']}</p><hr>"
             f"<p><strong>Ideal:</strong> {npc_data['ideal']}</p><p><strong>Bond:</strong> {npc_data['bond']}</p><p><strong>Flaw:</strong> {npc_data['flaw']}</p>"
         )
-        # (Rest of the function is the same)
-        payload = {"name": npc_data['name'], "entry": entry_html, "title": f"{npc_data['race']} {npc_data['class']}",
+        
+        payload = {
+            "name": npc_data['name'],
+            "entry": entry_html,
+            "title": f"{npc_data['race']} {npc_data['class']}",
+            "is_private": True, # <-- Changed from False to True
             "race_id": self.kanka_ids['races'].get(npc_data['race']),
             "location_id": self.kanka_ids['locations'].get(npc_data['hometown']),
-            "organisation_id": self.kanka_ids['organizations'].get(npc_data['organization'])}
+            "organisation_id": self.kanka_ids['organizations'].get(npc_data['organization'])
+        }
+
         url = f"https://api.kanka.io/1.0/campaigns/{CAMPAIGN_ID}/characters"
         headers = {"Authorization": f"Bearer {KANKA_API_TOKEN}", "Content-Type": "application/json"}
+        
         try:
             response = requests.post(url, headers=headers, json=payload)
             response.raise_for_status()
