@@ -2,7 +2,7 @@
     "Kashal": {
         "pantheon_weights": { "Gods of the Empire": 9, "Gods of Humans - Old Gods": 1 },
         "organization_weights": { "Praetorian Guard": 3, "Mages Guild": 2, "Trades Guilds": 4, "Gladiators": 2, "Thieves Guild": 1 },
-        "race_weights": { "Human": 8, "Dwarf": 2, "Half-Elf": 1, "Tiefling": 1, "Warforged": 1 },
+        "race_weights": { "Human": 8, "Dwarf": 2, "Half-Elf": 1, "Infernis": 1, "Clank": 1 },
         "name_style": "roman"
     },
     "Grugain": {
